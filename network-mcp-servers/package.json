@@ -1,0 +1,40 @@
+{
+  "name": "network-mcp-servers",
+  "version": "1.0.0",
+  "description": "Model Context Protocol servers for Fortinet and Meraki network devices",
+  "main": "index.js",
+  "scripts": {
+    "build:all": "npm run build --prefix fortinet-server && npm run build --prefix meraki-server",
+    "build:fortinet": "npm run build --prefix fortinet-server",
+    "build:meraki": "npm run build --prefix meraki-server",
+    "clean": "rm -rf fortinet-server/build meraki-server/build",
+    "install:all": "npm install --prefix fortinet-server && npm install --prefix meraki-server",
+    "test:fortinet": "npm run inspector --prefix fortinet-server",
+    "test:meraki": "npm run inspector --prefix meraki-server",
+    "launch:fortinet": "./launch-fortinet.sh",
+    "launch:meraki": "./launch-meraki.sh"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "fortinet",
+    "meraki",
+    "network",
+    "api",
+    "ai",
+    "tools"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/network-mcp-servers.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/network-mcp-servers/issues"
+  },
+  "homepage": "https://github.com/yourusername/network-mcp-servers#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
