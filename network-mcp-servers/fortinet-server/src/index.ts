@@ -8,6 +8,10 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import axios, { AxiosInstance } from 'axios';
+import { trustCustomCA } from './ssl-helper.js';
+
+// Initialize SSL trust for Zscaler/custom CAs
+trustCustomCA();
 
 const FORTIGATE_HOST = process.env.FORTIGATE_HOST || '192.168.0.254';
 const FORTIGATE_PORT = process.env.FORTIGATE_PORT || '10443';

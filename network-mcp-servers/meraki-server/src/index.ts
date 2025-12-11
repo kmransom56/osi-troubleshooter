@@ -8,6 +8,10 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import axios, { AxiosInstance } from 'axios';
+import { trustCustomCA } from './ssl-helper.js';
+
+// Initialize SSL trust for Zscaler/custom CAs
+trustCustomCA();
 
 const MERAKI_API_KEY = process.env.MERAKI_API_KEY;
 const MERAKI_BASE_URL = process.env.MERAKI_BASE_URL || 'https://api.meraki.com/api/v1';
