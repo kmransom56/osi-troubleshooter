@@ -1,0 +1,222 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "A team that runs a group chat with participants taking turns in a round-robin fashion\n    to publish a message to all.",
+  "label": "RoundRobinGroupChat",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 1,
+        "description": "An agent that provides assistance with tool use.",
+        "label": "AssistantAgent",
+        "config": {
+          "name": "ErrorDetectionAgent",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "description": "Chat completion client for OpenAI hosted models.",
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "workbench": {
+            "provider": "autogen_core.tools.StaticWorkbench",
+            "component_type": "workbench",
+            "version": 1,
+            "component_version": 1,
+            "description": "A workbench that provides a static set of tools that do not change after\n    each tool execution.",
+            "label": "StaticWorkbench",
+            "config": {
+              "tools": [
+                {
+                  "provider": "autogen_core.tools.FunctionTool",
+                  "component_type": "tool",
+                  "version": 1,
+                  "component_version": 1,
+                  "description": "Create custom tools by wrapping standard Python functions.",
+                  "label": "FunctionTool",
+                  "config": {
+                    "source_code": "def fetch_snmp_counters(ip: str, community: str, oid: str) -> str:\n    \"\"\"\n    Fetch SNMP data for a given OID.\n    \"\"\"\n    # Imports must be inside for portability in some serialization contexts\n    # or ensure they are available in the global scope of the execution environment.\n    # For safety, we put them inside.\n    from pysnmp.hlapi import getCmd, SnmpEngine, CommunityData, UdpTransportTarget, ContextData, ObjectType, ObjectIdentity\n\n    try:\n        iterator = getCmd(\n            SnmpEngine(),\n            CommunityData(community, mpModel=0),\n            UdpTransportTarget((ip, 161)),\n            ContextData(),\n            ObjectType(ObjectIdentity(oid))\n        )\n\n        errorIndication, errorStatus, errorIndex, varBinds = next(iterator)\n\n        if errorIndication:\n            return f\"Error: {errorIndication}\"\n        elif errorStatus:\n            return f\"Error: {errorStatus.prettyPrint()}\"\n        else:\n            # Return the first variable binding value\n            for varBind in varBinds:\n                return f\"{varBind[1]}\"\n            return \"No data returned\"\n    except Exception as e:\n        return f\"Exception: {e}\"\n",
+                    "name": "fetch_snmp_counters",
+                    "description": "Fetch SNMP counters from network devices.",
+                    "global_imports": [
+                      "pysnmp.hlapi"
+                    ],
+                    "has_cancellation_support": false
+                  }
+                }
+              ]
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context that keeps a view of the all the messages.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "An agent that provides assistance with ability to use tools.",
+          "system_message": "You are an ErrorDetectionAgent. Analyze network health using SNMP tools. Use fetch_snmp_counters to check for errors.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 1,
+        "description": "An agent that provides assistance with tool use.",
+        "label": "AssistantAgent",
+        "config": {
+          "name": "VLANTroubleshootingAgent",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "description": "Chat completion client for OpenAI hosted models.",
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "workbench": {
+            "provider": "autogen_core.tools.StaticWorkbench",
+            "component_type": "workbench",
+            "version": 1,
+            "component_version": 1,
+            "description": "A workbench that provides a static set of tools that do not change after\n    each tool execution.",
+            "label": "StaticWorkbench",
+            "config": {
+              "tools": [
+                {
+                  "provider": "autogen_core.tools.FunctionTool",
+                  "component_type": "tool",
+                  "version": 1,
+                  "component_version": 1,
+                  "description": "Create custom tools by wrapping standard Python functions.",
+                  "label": "FunctionTool",
+                  "config": {
+                    "source_code": "def fetch_vlan_config(ip: str, username: str, password: str, command: str = \"show vlan brief\") -> str:\n    \"\"\"\n    Fetch VLAN configuration from a network device using SSH.\n    \"\"\"\n    import paramiko\n\n    try:\n        ssh = paramiko.SSHClient()\n        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())\n        ssh.connect(ip, username=username, password=password)\n\n        stdin, stdout, stderr = ssh.exec_command(command)\n        output = stdout.read().decode()\n        ssh.close()\n        return output\n    except Exception as e:\n        return f\"Error connecting to {ip}: {e}\"\n",
+                    "name": "fetch_vlan_config",
+                    "description": "Fetch VLAN configuration via SSH.",
+                    "global_imports": [
+                      "paramiko"
+                    ],
+                    "has_cancellation_support": false
+                  }
+                }
+              ]
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context that keeps a view of the all the messages.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "An agent that provides assistance with ability to use tools.",
+          "system_message": "You are a VLANTroubleshootingAgent. Verify VLAN configurations using fetch_vlan_config.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 1,
+        "description": "An agent that provides assistance with tool use.",
+        "label": "AssistantAgent",
+        "config": {
+          "name": "SwitchPortDiagnosticsAgent",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "description": "Chat completion client for OpenAI hosted models.",
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "workbench": {
+            "provider": "autogen_core.tools.StaticWorkbench",
+            "component_type": "workbench",
+            "version": 1,
+            "component_version": 1,
+            "description": "A workbench that provides a static set of tools that do not change after\n    each tool execution.",
+            "label": "StaticWorkbench",
+            "config": {
+              "tools": [
+                {
+                  "provider": "autogen_core.tools.FunctionTool",
+                  "component_type": "tool",
+                  "version": 1,
+                  "component_version": 1,
+                  "description": "Create custom tools by wrapping standard Python functions.",
+                  "label": "FunctionTool",
+                  "config": {
+                    "source_code": "def fetch_vlan_config(ip: str, username: str, password: str, command: str = \"show vlan brief\") -> str:\n    \"\"\"\n    Fetch VLAN configuration from a network device using SSH.\n    \"\"\"\n    import paramiko\n\n    try:\n        ssh = paramiko.SSHClient()\n        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())\n        ssh.connect(ip, username=username, password=password)\n\n        stdin, stdout, stderr = ssh.exec_command(command)\n        output = stdout.read().decode()\n        ssh.close()\n        return output\n    except Exception as e:\n        return f\"Error connecting to {ip}: {e}\"\n",
+                    "name": "fetch_vlan_config",
+                    "description": "Fetch VLAN configuration via SSH.",
+                    "global_imports": [
+                      "paramiko"
+                    ],
+                    "has_cancellation_support": false
+                  }
+                }
+              ]
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context that keeps a view of the all the messages.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "An agent that provides assistance with ability to use tools.",
+          "system_message": "You are a SwitchPortDiagnosticsAgent. Diagnose STP and port states using fetch_vlan_config (running STP commands).",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.conditions.TextMentionTermination",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "description": "Terminate the conversation if a specific text is mentioned.",
+      "label": "TextMentionTermination",
+      "config": {
+        "text": "TERMINATE"
+      }
+    },
+    "emit_team_events": false
+  }
+}
