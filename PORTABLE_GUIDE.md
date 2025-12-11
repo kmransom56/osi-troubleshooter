@@ -32,6 +32,31 @@ The application exposes the following endpoints for external integrations:
     - `POST /api/vlan/audit`
     - Body: `{"ip": "1.2.3.4", "username": "admin", "password": "...", "command": "show vlan"}`
 
-## Agent Integration
+## MCP Integration (Fortinet & Meraki)
 
-The AutoGen agents (configured in `osi_team_config.json`) contain embeded logic that mirrors these utilities. You can use the `setup_team.py` (if applicable) or import the JSON to use the agents directly.
+The application now includes a bridge to local MCP servers.
+
+*   **List Tools**:
+    - `GET /api/mcp/fortinet/tools`
+    - `GET /api/mcp/meraki/tools`
+
+*   **Execute Tool**:
+    - `POST /api/mcp/fortinet/call/{tool_name}`
+    - Body: `{"arguments": { "param1": "value" }}`
+
+These endpoints run the Node.js MCP servers as subprocesses and proxy the JSON-RPC calls.
+
+## Network MCP Servers (Fortinet & Meraki)
+
+The repository includes custom MCP servers in `network-mcp-servers/`.
+
+**Requirements:**
+- **Node.js**: These servers are written in TypeScript/Node.js. Ensure `node` and `npm` are installed.
+
+**Setup:**
+1. `cd network-mcp-servers/fortinet-server`
+2. `npm install`
+3. `npm run build` (if required) or `node build/index.js`
+
+**Integration:**
+To use these with AutoGen, you typically run them as a subprocess.
